@@ -1,5 +1,7 @@
 const http = require('http');
 const url = require('url');
+const fs = require('fs');
+const path = require('path');
 const AddressConverter = require('./addressConverter');
 
 const converter = new AddressConverter();
@@ -17,7 +19,17 @@ const server = http.createServer((req, res) => {
     
     const parsedUrl = url.parse(req.url, true);
     
-    if (parsedUrl.pathname === '/convert' && req.method === 'GET') {
+    if (parsedUrl.pathname === '/' && req.method === 'GET') {
+        fs.readFile(path.join(__dirname, 'index.html'), 'utf8', (err, html) => {
+            if (err) {
+                res.writeHead(500, { 'Content-Type': 'text/plain; charset=utf-8' });
+                res.end("Internal Server Error");
+                return;
+            }
+            res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
+            res.end(html);
+        });
+    } else if (parsedUrl.pathname === '/convert' && req.method === 'GET') {
         const query = parsedUrl.query;
         if (!query.address) {
             res.writeHead(400, { 'Content-Type': 'application/json; charset=utf-8' });

@@ -121,7 +121,8 @@
             errorBox.classList.add('hidden');
 
             try {
-                const response = await fetch(`http://localhost:3000/convert?address=${encodeURIComponent(input)}`);
+                const apiHost = window.location.protocol === 'file:' ? 'http://localhost:3000' : '';
+                const response = await fetch(`${apiHost}/convert?address=${encodeURIComponent(input)}`);
                 const data = await response.json();
 
                 if (response.ok) {
