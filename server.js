@@ -42,8 +42,7 @@ const server = http.createServer((req, res) => {
     }
 });
 
-const PORT = 3000;
+const PORT = process.env.PORT || 3000;
 server.listen(PORT, () => {
-    console.log(`Address Converter API Server is running on http://localhost:${PORT}`);
-    console.log(`Test API: http://localhost:${PORT}/convert?address=Tổ+3,+khu+1,+phường+Quang+Trung,+Uông+Bí,+Quảng+Ninh`);
+    console.log(`Address Converter API Server is running on port ${PORT}`);
 });
