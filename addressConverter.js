@@ -519,6 +519,18 @@ class AddressConverter {
                 let wNorm = this.normalize(parts[i]);
                 if (!wNorm) continue;
                 
+                // Skip ward matching if the current part is exactly a district name to avoid false positives (e.g. "Nam Từ Liêm")
+                let isDistrictPart = false;
+                for (const d of this.districts) {
+                    if (d.provinceCode === resultProvince.code && d.norm === wNorm) {
+                        isDistrictPart = true;
+                        break;
+                    }
+                }
+                if (isDistrictPart) {
+                    continue;
+                }
+
                 for (const w of wardsInProv) {
                     let rx = new RegExp(`\\b${escapeRegExp(w.norm)}\\b`, 'i');
                     let match = wNorm.match(rx);
@@ -531,7 +543,10 @@ class AddressConverter {
                         }
                         
                         // Check for road/street indicator prefix for non-numeric ward names to avoid false matches (e.g. đường Lê Lợi)
-                        if (/\b(duong|pho|ngo|ngach|hem|so|sn|km|so nha|ki lo met|ql|dt|quoc lo|duong tinh)\b[\s\d/a-z-]*$/i.test(prefixSub)) {
+                        let isStreet = /\b(duong|pho|ngo|ngach|hem|so|sn|km|so nha|ki lo met|ql|dt|quoc lo|duong tinh)\b[\s\d/a-z-]*$/i.test(prefixSub);
+                        // Do not treat as street if preceded by a neighborhood indicator (e.g. "tổ dân phố số 10 Cầu Diễn")
+                        let isNeigh = /\b(to\s+dan\s+pho|khu\s+pho|lien\s+khu|to|khu|thon|xom|ap|ban|buon|phum|soc)\b/i.test(prefixSub);
+                        if (isStreet && !isNeigh) {
                             continue;
                         }
                         
@@ -557,7 +572,10 @@ class AddressConverter {
                         }
                         
                         // Check for road/street indicator prefix for non-numeric ward names to avoid false matches
-                        if (/\b(duong|pho|ngo|ngach|hem|so|sn|km|so nha|ki lo met|ql|dt|quoc lo|duong tinh)\b[\s\d/a-z-]*$/i.test(prefixSub)) {
+                        let isStreet = /\b(duong|pho|ngo|ngach|hem|so|sn|km|so nha|ki lo met|ql|dt|quoc lo|duong tinh)\b[\s\d/a-z-]*$/i.test(prefixSub);
+                        // Do not treat as street if preceded by a neighborhood indicator
+                        let isNeigh = /\b(to\s+dan\s+pho|khu\s+pho|lien\s+khu|to|khu|thon|xom|ap|ban|buon|phum|soc)\b/i.test(prefixSub);
+                        if (isStreet && !isNeigh) {
                             continue;
                         }
                         

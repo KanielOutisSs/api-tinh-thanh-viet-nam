@@ -53,6 +53,11 @@ const tests = [
         name: 'Trường hợp viết tắt "Tt" mang ý nghĩa "Tập thể" (collective building) chứ không phải "Thị trấn"',
         input: '7 Nhà E - Tt 81 Vân Hồ 3 - Lê Đại Hành - Hai Bà Trưng - Hà Nội',
         expected: '7 Nhà E, Tập thể 81 Vân Hồ 3, Phường Hai Bà Trưng, Thành phố Hà Nội'
+    },
+    {
+        name: 'Trường hợp sáp nhập Phường Cầu Diễn và Quận Nam Từ Liêm thành Phường Từ Liêm',
+        input: 'Tổ Dân Phố Số 10 Cầu Diễn, Nam Từ Liêm, Hà Nội',
+        expected: 'Tổ Dân Phố Số 10, Phường Từ Liêm, Thành phố Hà Nội'
     }
 ];
 
