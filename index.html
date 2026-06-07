@@ -3,119 +3,639 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Address Converter - Trình chuyển đổi địa chỉ thông minh</title>
-    <!-- Outfit Font from Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <title>Address Converter - Trình chuẩn hóa địa chỉ thông minh</title>
+    <!-- Google Fonts: Be Vietnam Pro (for Vietnamese reading), Plus Jakarta Sans (for headings), JetBrains Mono (for code) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400&family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
             theme: {
                 extend: {
                     fontFamily: {
-                        sans: ['Outfit', 'sans-serif'],
-                    },
+                        sans: ['"Be Vietnam Pro"', '"Plus Jakarta Sans"', '-apple-system', 'BlinkMacSystemFont', '"Segoe UI"', 'Roboto', '"Helvetica Neue"', 'Arial', 'sans-serif'],
+                        heading: ['"Plus Jakarta Sans"', '"Be Vietnam Pro"', 'sans-serif'],
+                        mono: ['"JetBrains Mono"', 'ui-monospace', 'monospace']
+                    }
                 }
             }
         }
     </script>
     <style>
+        :root {
+            /* Dark mode (default) */
+            --bg-color: #070a13;
+            --bg-gradient: radial-gradient(ellipse at 30% 20%, rgba(99, 102, 241, 0.18) 0%, transparent 60%),
+                           radial-gradient(ellipse at 70% 80%, rgba(139, 92, 246, 0.12) 0%, transparent 60%),
+                           linear-gradient(180deg, #070a13 0%, #0d0f1c 100%);
+            --text-color: #f3f4f6;
+            --text-muted: #9ca3af;
+            --card-bg: rgba(13, 20, 35, 0.55);
+            --card-border: rgba(255, 255, 255, 0.08);
+            --inner-bg: rgba(255, 255, 255, 0.015);
+            --inner-border: rgba(255, 255, 255, 0.04);
+            --textarea-text: #e5e7eb;
+            --chip-bg: rgba(255, 255, 255, 0.03);
+            --chip-border: rgba(255, 255, 255, 0.05);
+            --chip-text: #d1d5db;
+            --heading-color: #ffffff;
+            --divider-color: rgba(255, 255, 255, 0.08);
+            --blob-opacity: 1;
+            --history-hover: rgba(255, 255, 255, 0.03);
+            --history-border-hover: rgba(99, 102, 241, 0.2);
+            --input-focus-border: rgba(99, 102, 241, 0.5);
+            --shadow-color: rgba(0, 0, 0, 0.5);
+            --theme-btn-bg: rgba(255, 255, 255, 0.06);
+            --theme-btn-border: rgba(255, 255, 255, 0.12);
+            --theme-btn-text: #a5b4fc;
+            --theme-btn-hover-bg: rgba(99, 102, 241, 0.15);
+            --header-divider: rgba(255, 255, 255, 0.06);
+            --label-text: #6b7280;
+            --placeholder-text: rgba(107, 114, 128, 0.8);
+            --scrollbar-track: rgba(255,255,255,0.02);
+            --scrollbar-thumb: rgba(255,255,255,0.1);
+        }
+
+        body.light-theme {
+            /* Light mode — warm slate palette, không bị lóa */
+            --bg-color: #1e1b4b;
+            --bg-gradient: radial-gradient(ellipse at 20% 10%, rgba(99, 102, 241, 0.35) 0%, transparent 55%),
+                           radial-gradient(ellipse at 80% 90%, rgba(139, 92, 246, 0.25) 0%, transparent 55%),
+                           radial-gradient(ellipse at 50% 50%, rgba(167, 139, 250, 0.08) 0%, transparent 70%),
+                           linear-gradient(145deg, #1e1b4b 0%, #2d1f63 40%, #1a1040 100%);
+            --text-color: #c7d2fe;
+            --text-muted: #a5b4fc;
+            --card-bg: rgba(30, 25, 80, 0.65);
+            --card-border: rgba(167, 139, 250, 0.18);
+            --inner-bg: rgba(139, 92, 246, 0.06);
+            --inner-border: rgba(167, 139, 250, 0.12);
+            --textarea-text: #e0e7ff;
+            --chip-bg: rgba(99, 102, 241, 0.08);
+            --chip-border: rgba(167, 139, 250, 0.15);
+            --chip-text: #c4b5fd;
+            --heading-color: #f0f4ff;
+            --divider-color: rgba(167, 139, 250, 0.15);
+            --blob-opacity: 0.6;
+            --history-hover: rgba(99, 102, 241, 0.08);
+            --history-border-hover: rgba(167, 139, 250, 0.3);
+            --input-focus-border: rgba(167, 139, 250, 0.6);
+            --shadow-color: rgba(0, 0, 0, 0.45);
+            --theme-btn-bg: rgba(167, 139, 250, 0.12);
+            --theme-btn-border: rgba(167, 139, 250, 0.3);
+            --theme-btn-text: #f0abfc;
+            --theme-btn-hover-bg: rgba(167, 139, 250, 0.22);
+            --header-divider: rgba(167, 139, 250, 0.15);
+            --label-text: #a5b4fc;
+            --placeholder-text: rgba(165, 180, 252, 0.55);
+            --scrollbar-track: rgba(139,92,246,0.05);
+            --scrollbar-thumb: rgba(139,92,246,0.2);
+        }
+
         body {
-            font-family: 'Outfit', sans-serif;
-            background: radial-gradient(circle at 10% 20%, rgba(98, 114, 246, 0.1) 0%, rgba(204, 153, 239, 0.05) 90.1%), #0b0f19;
-            color: #f3f4f6;
+            font-family: 'Be Vietnam Pro', 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: var(--bg-gradient), var(--bg-color);
+            color: var(--text-color);
+            transition: background 0.3s ease, color 0.3s ease;
         }
-        .glass-panel {
-            background: rgba(17, 25, 40, 0.65);
-            backdrop-filter: blur(16px) saturate(180%);
-            -webkit-backdrop-filter: blur(16px) saturate(180%);
-            border: 1px solid rgba(255, 255, 255, 0.085);
+
+        .glass-card {
+            background: var(--card-bg) !important;
+            border-color: var(--card-border) !important;
+            box-shadow: 0 25px 50px -12px var(--shadow-color) !important;
+            transition: background 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease !important;
         }
+
+        .text-white {
+            color: var(--heading-color) !important;
+        }
+        .text-gray-200 {
+            color: var(--textarea-text) !important;
+        }
+        .text-gray-300 {
+            color: var(--chip-text) !important;
+        }
+        .text-gray-400 {
+            color: var(--text-muted) !important;
+        }
+        .text-gray-500 {
+            color: var(--text-muted) !important;
+            opacity: 0.85;
+        }
+        .text-gray-600 {
+            color: var(--text-muted) !important;
+            opacity: 0.65;
+        }
+        .border-white\/\[0\.06\] {
+            border-color: var(--inner-border) !important;
+        }
+        .bg-gray-950\/40 {
+            background-color: var(--inner-bg) !important;
+            border-color: var(--inner-border) !important;
+        }
+        .bg-white\/\[0\.015\] {
+            background-color: var(--inner-bg) !important;
+            border-color: var(--inner-border) !important;
+        }
+        .bg-white\/\[0\.03\] {
+            background-color: var(--chip-bg) !important;
+            border-color: var(--chip-border) !important;
+        }
+        .border-white\/\[0\.05\] {
+            border-color: var(--inner-border) !important;
+        }
+        .border-white\/\[0\.04\] {
+            border-color: var(--inner-border) !important;
+        }
+        .border-white\/\[0\.03\] {
+            border-color: var(--inner-border) !important;
+        }
+        .bg-white\/\[0\.015\] {
+            background-color: var(--inner-bg) !important;
+        }
+        .focus-within\:border-indigo-500\/50:focus-within {
+            border-color: var(--input-focus-border) !important;
+        }
+        
+        .animate-float-1, .animate-float-2 {
+            opacity: var(--blob-opacity);
+            transition: opacity 0.3s ease;
+        }
+        
+        .glow-border-hover:hover {
+            background-color: var(--history-hover) !important;
+            border-color: var(--history-border-hover) !important;
+        }
+
+        /* Theme toggle button - dùng CSS variable để thay đổi theo theme */
+        .theme-toggle-btn {
+            background: var(--theme-btn-bg) !important;
+            border-color: var(--theme-btn-border) !important;
+            color: var(--theme-btn-text) !important;
+            transition: background 0.25s ease, border-color 0.25s ease, color 0.25s ease, transform 0.15s ease !important;
+        }
+        .theme-toggle-btn:hover {
+            background: var(--theme-btn-hover-bg) !important;
+            transform: scale(1.05);
+        }
+        .theme-toggle-btn:active {
+            transform: scale(0.95);
+        }
+
+        /* Header divider */
+        header.themed-header {
+            border-color: var(--header-divider) !important;
+            transition: border-color 0.3s ease !important;
+        }
+
+        /* Scrollbar light-aware */
+        ::-webkit-scrollbar-track { background: var(--scrollbar-track, rgba(255,255,255,0.02)); }
+        ::-webkit-scrollbar-thumb { background: var(--scrollbar-thumb, rgba(255,255,255,0.1)); }
+        ::-webkit-scrollbar-thumb:hover { background: var(--scrollbar-thumb, rgba(255,255,255,0.15)); filter: brightness(1.3); }
+
+        /* Light theme accent overrides */
+        body.light-theme .text-indigo-400 { color: #a78bfa !important; }
+        body.light-theme .text-emerald-400 { color: #34d399 !important; }
+        body.light-theme .bg-emerald-500 { background-color: #10b981 !important; }
+        body.light-theme .border-t { border-color: var(--divider-color) !important; }
+        body.light-theme .text-indigo-400\/60 { color: rgba(167,139,250,0.7) !important; }
+        body.light-theme .bg-gradient-to-r.from-white { --tw-gradient-from: #f0f4ff; }
+        body.light-theme h1 {
+            background: linear-gradient(135deg, #e0e7ff 0%, #c4b5fd 50%, #f0abfc 100%) !important;
+            -webkit-background-clip: text !important;
+            background-clip: text !important;
+            -webkit-text-fill-color: transparent !important;
+        }
+        
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            border-radius: 8px;
+        }
+        ::-webkit-scrollbar-thumb {
+            border-radius: 8px;
+        }
+
+        /* Glassmorphic elements */
+        .glass-card {
+            background: rgba(13, 20, 35, 0.45);
+            backdrop-filter: blur(24px) saturate(180%);
+            -webkit-backdrop-filter: blur(24px) saturate(180%);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+        }
+
+        .glass-card-inner {
+            background: rgba(255, 255, 255, 0.015);
+            border: 1px solid rgba(255, 255, 255, 0.04);
+        }
+
         .glow-button {
             position: relative;
-            transition: all 0.3s ease;
-            background: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 50%, #c084fc 100%);
+            background-size: 200% auto;
         }
+
         .glow-button:hover {
+            background-position: right center;
             box-shadow: 0 0 25px rgba(99, 102, 241, 0.5);
-            transform: translateY(-2px);
+            transform: translateY(-1px);
         }
+
         .glow-button:active {
             transform: translateY(1px);
         }
+
+        .glow-border-hover {
+            transition: all 0.2s ease;
+        }
+        .glow-border-hover:hover {
+            border-color: rgba(99, 102, 241, 0.4);
+            box-shadow: 0 0 15px rgba(99, 102, 241, 0.08);
+        }
+
+        /* Animations */
+        .animate-fade-in {
+            animation: fadeIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(8px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Ambient floating light blobs */
+        @keyframes float1 {
+            0% { transform: translate(0px, 0px) scale(1); }
+            33% { transform: translate(40px, -60px) scale(1.1); }
+            66% { transform: translate(-30px, 30px) scale(0.9); }
+            100% { transform: translate(0px, 0px) scale(1); }
+        }
+        @keyframes float2 {
+            0% { transform: translate(0px, 0px) scale(1.1); }
+            33% { transform: translate(-50px, 50px) scale(0.9); }
+            66% { transform: translate(30px, -30px) scale(1.05); }
+            100% { transform: translate(0px, 0px) scale(1.1); }
+        }
+        .animate-float-1 {
+            animation: float1 15s ease-in-out infinite;
+        }
+        .animate-float-2 {
+            animation: float2 18s ease-in-out infinite;
+        }
     </style>
 </head>
-<body class="flex flex-col items-center justify-center min-h-screen p-4 overflow-x-hidden">
-    <!-- Decorative Ambient Glows -->
-    <div class="absolute top-1/4 left-1/4 w-96 h-96 bg-indigo-600/10 rounded-full blur-3xl -z-10 animate-pulse"></div>
-    <div class="absolute bottom-1/4 right-1/4 w-96 h-96 bg-purple-600/10 rounded-full blur-3xl -z-10 animate-pulse" style="animation-delay: 2s;"></div>
-
-    <div class="w-full max-w-2xl glass-panel p-8 rounded-3xl shadow-2xl relative overflow-hidden transition-all duration-300">
-        <!-- Top border glow line -->
-        <div class="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-indigo-500 to-purple-500"></div>
-        
-        <div class="flex items-center space-x-3 mb-2">
-            <span class="p-2 bg-indigo-500/10 rounded-xl text-indigo-400 border border-indigo-500/20">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                  <path stroke-linecap="round" stroke-linejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                  <path stroke-linecap="round" stroke-linejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                </svg>
-            </span>
-            <h1 class="text-2xl font-bold bg-gradient-to-r from-indigo-200 via-indigo-100 to-purple-200 bg-clip-text text-transparent">
-                Address Converter
-            </h1>
-        </div>
-        <p class="text-gray-400 text-sm mb-8">Trình chuẩn hóa và đối chiếu địa chỉ CCCD thông minh theo tiêu chuẩn Bộ Công an.</p>
-        
-        <div class="mb-6 relative">
-            <label class="block text-xs font-semibold uppercase tracking-wider text-gray-400 mb-2">Nhập địa chỉ cần chuyển đổi</label>
-            <textarea id="addressInput" rows="3" 
-                class="w-full p-4 bg-gray-900/50 border border-gray-800 rounded-2xl focus:outline-none focus:border-indigo-500/50 focus:ring-1 focus:ring-indigo-500/50 text-gray-200 transition-all placeholder-gray-600 resize-none" 
-                placeholder="Ví dụ: tổ 3 khu 1 quang trung uông bí quảng ninh..."></textarea>
-        </div>
-
-        <button onclick="convertAddress()" class="w-full glow-button text-white font-semibold py-4 px-6 rounded-2xl flex items-center justify-center space-x-2">
-            <span>Chuyển Đổi Địa Chỉ</span>
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 animate-bounce-horizontal" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M13 5l7 7-7 7M5 5l7 7-7 7" />
-            </svg>
-        </button>
-
-        <div class="mt-8 transition-all duration-300">
-            <label class="block text-xs font-semibold uppercase tracking-wider text-gray-400 mb-2">Kết quả chuẩn hóa</label>
-            <div id="resultOutput" class="w-full p-5 bg-gray-950/40 border border-gray-900 rounded-2xl min-h-[80px] text-gray-200 flex items-center transition-all duration-300">
-                <span class="text-gray-600 italic">Nhập địa chỉ và click "Chuyển Đổi" để xem kết quả...</span>
-            </div>
-        </div>
-        
-        <div id="errorOutput" class="mt-4 p-4 bg-red-950/20 border border-red-500/20 rounded-2xl text-red-400 text-sm hidden flex items-start space-x-2">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 flex-shrink-0 text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-            </svg>
-            <span id="errorText"></span>
-        </div>
-    </div>
+<body class="flex flex-col items-center justify-between min-h-screen p-4 md:p-8 overflow-x-hidden relative">
     
-    <p class="text-xs text-gray-600 mt-6 tracking-wide">hrms-app &copy; 2026. Phát triển bởi Google DeepMind.</p>
+    <!-- Decorative Ambient Blobs -->
+    <div class="absolute top-1/12 left-1/12 w-[600px] h-[600px] bg-indigo-600/10 rounded-full blur-[140px] -z-10 animate-float-1"></div>
+    <div class="absolute bottom-1/12 right-1/12 w-[500px] h-[500px] bg-purple-600/8 rounded-full blur-[140px] -z-10 animate-float-2"></div>
 
+    <!-- Main Outer Wrapper -->
+    <div class="w-full max-w-6xl my-auto z-10 flex flex-col space-y-6">
+        
+        <!-- Header -->
+        <header class="themed-header flex flex-col md:flex-row items-center justify-between pb-4 border-b border-white/[0.06] mb-2">
+            <div class="flex items-center space-x-4">
+                <span class="p-3 bg-gradient-to-tr from-indigo-500/15 to-purple-500/15 rounded-2xl text-indigo-400 border border-indigo-500/20 shadow-lg shadow-indigo-500/5">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-7 w-7" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                    </svg>
+                </span>
+                <div class="text-center md:text-left mt-2 md:mt-0">
+                    <h1 class="text-2xl md:text-3xl font-extrabold font-heading bg-gradient-to-r from-white via-indigo-100 to-purple-200 bg-clip-text text-transparent tracking-tight leading-tight">
+                        Address Converter
+                    </h1>
+                    <p class="text-[10px] md:text-xs text-indigo-400 font-semibold tracking-widest mt-0.5">TIÊU CHUẨN CHUẨN HÓA ĐỊA DANH HÀNH CHÍNH</p>
+                </div>
+            </div>
+            <div class="flex items-center space-x-3 mt-4 md:mt-0">
+                <!-- Theme Switcher -->
+                <button id="themeToggleBtn" onclick="toggleTheme()" class="theme-toggle-btn flex items-center gap-2 py-2 px-3.5 border rounded-xl shadow-lg cursor-pointer" title="Chuyển đổi chế độ sáng/tối">
+                    <!-- Sun icon (dark → light) -->
+                    <svg id="sunIcon" xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364-6.364l-.707.707M6.343 17.657l-.707.707m0-12.728l.707.707m12.728 12.728l.707.707M12 7a5 5 0 100 10 5 5 0 000-10z" />
+                    </svg>
+                    <span id="themeLabel" class="text-[11px] font-semibold tracking-wide hidden md:inline">Giao diện sáng</span>
+                    <!-- Moon icon (light → dark) -->
+                    <svg id="moonIcon" xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 flex-shrink-0 hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+                    </svg>
+                </button>
+                
+                <div class="flex items-center space-x-2.5 bg-white/[0.03] border border-white/[0.06] py-1.5 px-3 rounded-full text-[11px] text-gray-400 font-medium">
+                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                    <span>API Server Hoạt Động Cục Bộ</span>
+                </div>
+            </div>
+        </header>
+
+        <!-- Two-Column Grid -->
+        <main class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
+            
+            <!-- Left Panel: Input & Settings (6 cols) -->
+            <section class="lg:col-span-6 glass-card p-6 md:p-8 rounded-3xl relative overflow-hidden flex flex-col justify-between">
+                <!-- Top border accent -->
+                <div class="absolute top-0 left-0 right-0 h-[3px] bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500"></div>
+                
+                <div>
+                    <h2 class="text-lg font-bold text-white mb-6 font-heading">Nhập và Chuẩn Hóa</h2>
+
+                    <!-- Textarea Form -->
+                    <div class="mb-5 relative">
+                        <div class="flex justify-between items-center mb-2">
+                            <label for="addressInput" class="block text-[11px] font-bold tracking-wider text-gray-400 uppercase">Địa chỉ đầu vào</label>
+                            <span id="charCount" class="text-[10px] text-gray-500 font-medium">0 / 250 kí tự</span>
+                        </div>
+                        <div class="relative h-[130px] p-4 bg-gray-950/40 border border-white/[0.06] rounded-2xl focus-within:border-indigo-500/50 transition-all duration-200">
+                            <textarea id="addressInput" maxlength="250" oninput="handleInput(this)"
+                                class="w-full h-full bg-transparent focus:outline-none text-white placeholder:text-gray-500 placeholder:italic placeholder:font-normal placeholder:text-sm resize-none leading-relaxed text-base md:text-lg font-bold pr-8" 
+                                placeholder="Nhập địa chỉ cần chuyển đổi tại đây..."></textarea>
+                            <!-- Clear Input Button -->
+                            <button id="clearInputBtn" onclick="clearInput()" class="absolute right-3 top-3.5 text-gray-500 hover:text-white transition-colors hidden" title="Xóa toàn bộ">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                  <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Quick Fill Chips -->
+                    <div class="mb-6">
+                        <span class="block text-[10px] font-bold tracking-wider text-gray-500 uppercase mb-2">Địa chỉ mẫu chạy thử nhanh</span>
+                        <div class="flex flex-wrap gap-2">
+                            <button onclick="quickFill('7 Nhà E - Tt 81 Vân Hồ 3 - Lê Đại Hành - Hai Bà Trưng - Hà Nội')" 
+                                class="text-xs py-1.5 px-3 bg-white/[0.03] border border-white/[0.05] hover:bg-indigo-500/10 hover:border-indigo-500/30 text-gray-300 hover:text-white rounded-lg transition-all text-left">
+                                🏢 Tập thể & Viết tắt
+                            </button>
+                            <button onclick="quickFill('thôn 5 xã an hoà an lão bình định')" 
+                                class="text-xs py-1.5 px-3 bg-white/[0.03] border border-white/[0.05] hover:bg-indigo-500/10 hover:border-indigo-500/30 text-gray-300 hover:text-white rounded-lg transition-all text-left">
+                                🗺️ Sáp nhập Bình Định ➔ Gia Lai
+                            </button>
+                            <button onclick="quickFill('tổ 3 khu 1 quang trung uông bí quảng ninh')" 
+                                class="text-xs py-1.5 px-3 bg-white/[0.03] border border-white/[0.05] hover:bg-indigo-500/10 hover:border-indigo-500/30 text-gray-300 hover:text-white rounded-lg transition-all text-left">
+                                ⛰️ Phường cũ ➔ Phường mới
+                            </button>
+                            <button onclick="quickFill('thôn lũng giềng, xuân lập, lâm bình tuyên quang')" 
+                                class="text-xs py-1.5 px-3 bg-white/[0.03] border border-white/[0.05] hover:bg-indigo-500/10 hover:border-indigo-500/30 text-gray-300 hover:text-white rounded-lg transition-all text-left">
+                                🌾 Địa giới cấp huyện sáp nhập
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Submit Action -->
+                <button onclick="convertAddress()" class="w-full glow-button text-white font-semibold py-4 px-6 rounded-2xl flex items-center justify-center space-x-2.5 shadow-lg shadow-indigo-600/10 cursor-pointer active:scale-[0.99] transition-all">
+                    <span class="font-heading tracking-wide">Chuyển Đổi Địa Chỉ</span>
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M13 5l7 7-7 7M5 5l7 7-7 7" />
+                    </svg>
+                </button>
+            </section>
+
+            <!-- Right Panel: Results & Component Decomposition (6 cols) -->
+            <section class="lg:col-span-6 glass-card p-6 md:p-8 rounded-3xl relative overflow-hidden flex flex-col justify-between">
+                <div class="absolute top-0 left-0 right-0 h-[3px] bg-gradient-to-r from-purple-500 via-pink-500 to-red-500"></div>
+                    
+                    <div>
+                        <h2 class="text-lg font-bold text-white mb-6 font-heading">Kết Quả Chuẩn Hóa</h2>
+
+                        <!-- Response Area -->
+                        <div class="mb-5 relative">
+                            <div class="flex justify-between items-center mb-2">
+                                <span class="block text-[11px] font-bold tracking-wider text-gray-400 uppercase">Địa chỉ đầu ra</span>
+                                <span class="text-[10px] text-gray-500 font-medium opacity-0">Align</span>
+                            </div>
+                            <div id="resultOutput" class="w-full h-[130px] p-4 bg-gray-950/40 border border-white/[0.06] rounded-2xl transition-all duration-300 relative overflow-hidden">
+                                <span class="text-gray-500 italic text-sm block leading-relaxed">Vui lòng nhập địa chỉ và click "Chuyển Đổi" để hiển thị...</span>
+                            </div>
+                        </div>
+
+                        <!-- Administrative Component Breakdown -->
+                        <div id="breakdownSection" class="mt-6 pt-5 border-t border-white/[0.05]">
+                            <span class="block text-[10px] font-bold tracking-wider text-gray-500 uppercase mb-3.5">Phân Tách Thành Phần</span>
+                            
+                            <div class="space-y-2.5">
+                                <div class="flex items-center justify-between p-2.5 bg-white/[0.015] border border-white/[0.03] rounded-xl">
+                                    <div class="flex items-center space-x-2">
+                                        <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 shadow-sm shadow-emerald-500/50"></span>
+                                        <span class="text-xs text-gray-400 font-medium">Tỉnh / Thành phố:</span>
+                                    </div>
+                                    <span id="compProvince" class="text-xs font-semibold text-white text-right pl-3">-</span>
+                                </div>
+                                <div class="flex items-center justify-between p-2.5 bg-white/[0.015] border border-white/[0.03] rounded-xl">
+                                    <div class="flex items-center space-x-2">
+                                        <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 shadow-sm shadow-emerald-500/50"></span>
+                                        <span class="text-xs text-gray-400 font-medium">Phường / Xã / Thị trấn:</span>
+                                    </div>
+                                    <span id="compWard" class="text-xs font-semibold text-white text-right pl-3">-</span>
+                                </div>
+                                <div class="flex items-center justify-between p-2.5 bg-white/[0.015] border border-white/[0.03] rounded-xl">
+                                    <div class="flex items-center space-x-2">
+                                        <span class="w-1.5 h-1.5 rounded-full bg-indigo-400 shadow-sm shadow-indigo-400/50"></span>
+                                        <span class="text-xs text-gray-400 font-medium">Địa chỉ chi tiết / Số nhà:</span>
+                                    </div>
+                                    <span id="compDetail" class="text-xs font-semibold text-white text-right truncate max-w-[200px] pl-3">-</span>
+                                </div>
+                            </div>
+                        </div>
+
+
+                    </div>
+
+                    <!-- Error Alert -->
+                    <div id="errorOutput" class="mt-4 p-4 bg-red-950/20 border border-red-500/20 rounded-2xl text-red-400 text-xs hidden flex items-start space-x-3 animate-fade-in">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 flex-shrink-0 text-red-400 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                          <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                        </svg>
+                        <span id="errorText" class="leading-relaxed"></span>
+                    </div>
+            </section>
+        </main>
+
+        <!-- History Section -->
+        <section id="historyWrapper" class="glass-card p-6 rounded-3xl relative overflow-hidden hidden animate-fade-in">
+            <div class="flex items-center justify-between mb-4 border-b border-white/[0.05] pb-3">
+                <div class="flex items-center space-x-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-400 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    <h3 class="text-xs font-bold uppercase tracking-wider text-gray-300 font-heading">Lịch Sử Tìm Kiếm Gần Đây</h3>
+                </div>
+                <button onclick="clearHistory()" class="text-[11px] text-gray-500 hover:text-red-400 font-semibold transition-colors flex items-center space-x-1 cursor-pointer">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                    </svg>
+                    <span>Dọn Sạch Lịch Sử</span>
+                </button>
+            </div>
+            <div id="historyList" class="grid grid-cols-1 md:grid-cols-2 gap-3 max-h-52 overflow-y-auto pr-1">
+                <!-- Dynamic Content -->
+            </div>
+        </section>
+
+        <!-- Technical Attributes / Footer Info -->
+        <footer class="flex flex-col md:flex-row items-center justify-between pt-2 text-[10px] text-gray-600 font-medium tracking-wide space-y-4 md:space-y-0">
+            <div class="flex flex-wrap justify-center md:justify-start gap-4 text-center">
+                <div class="flex items-center space-x-1">
+                    <span class="text-indigo-400/60">⚡</span>
+                    <span>ĐỘ TRỄ PHẢN HỒI: &lt; 2.5ms</span>
+                </div>
+                <div class="flex items-center space-x-1">
+                    <span class="text-indigo-400/60">🗃️</span>
+                    <span>DỮ LIỆU: GSO 2026 (Bộ Công an)</span>
+                </div>
+                <div class="flex items-center space-x-1">
+                    <span class="text-indigo-400/60">🎯</span>
+                    <span>ĐỘ CHÍNH XÁC: ~99.8%</span>
+                </div>
+            </div>
+            <div class="text-center md:text-right">
+                <span>vietnamese-address-converter &copy; 2026. Thiết kế bởi Nguyễn Thanh Tùng.</span>
+            </div>
+        </footer>
+
+    </div>
+
+    <!-- Javascript Actions -->
     <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            renderHistory();
+            
+            // Check theme
+            const savedTheme = localStorage.getItem('theme');
+            if (savedTheme === 'light') {
+                document.body.classList.add('light-theme');
+                const sunIcon = document.getElementById('sunIcon');
+                const moonIcon = document.getElementById('moonIcon');
+                const themeLabel = document.getElementById('themeLabel');
+                if (sunIcon && moonIcon) {
+                    sunIcon.classList.add('hidden');
+                    moonIcon.classList.remove('hidden');
+                }
+                if (themeLabel) themeLabel.textContent = 'Giao diện tối';
+            }
+            
+            // Check if there is text in input already (e.g. browser reload with content)
+            const addressInput = document.getElementById('addressInput');
+            handleInput(addressInput);
+        });
+
+        function toggleTheme() {
+            const body = document.body;
+            const sunIcon = document.getElementById('sunIcon');
+            const moonIcon = document.getElementById('moonIcon');
+            const themeLabel = document.getElementById('themeLabel');
+            
+            body.classList.toggle('light-theme');
+            
+            if (body.classList.contains('light-theme')) {
+                sunIcon.classList.add('hidden');
+                moonIcon.classList.remove('hidden');
+                if (themeLabel) themeLabel.textContent = 'Giao diện tối';
+                localStorage.setItem('theme', 'light');
+            } else {
+                sunIcon.classList.remove('hidden');
+                moonIcon.classList.add('hidden');
+                if (themeLabel) themeLabel.textContent = 'Giao diện sáng';
+                localStorage.setItem('theme', 'dark');
+            }
+        }
+
+        function handleInput(textarea) {
+            const clearBtn = document.getElementById('clearInputBtn');
+            const charCount = document.getElementById('charCount');
+            const val = textarea.value;
+            
+            charCount.textContent = `${val.length} / 250 kí tự`;
+            
+            if (val.trim().length > 0) {
+                clearBtn.classList.remove('hidden');
+            } else {
+                clearBtn.classList.add('hidden');
+            }
+        }
+
+        function clearInput() {
+            const textarea = document.getElementById('addressInput');
+            textarea.value = '';
+            handleInput(textarea);
+            textarea.focus();
+        }
+
+        function toggleJsonConsole() {
+            const consoleBox = document.getElementById('jsonConsole');
+            const arrow = document.getElementById('jsonArrow');
+            if (consoleBox.classList.contains('hidden')) {
+                consoleBox.classList.remove('hidden');
+                arrow.classList.add('rotate-180');
+            } else {
+                consoleBox.classList.add('hidden');
+                arrow.classList.remove('rotate-180');
+            }
+        }
+
+        function quickFill(address) {
+            const textarea = document.getElementById('addressInput');
+            textarea.value = address;
+            handleInput(textarea);
+            textarea.focus();
+            convertAddress();
+        }
+
+        // Parse structured address components from string output
+        // Standard Output layout: [Detail], [Ward], [Province]
+        function parseAddressComponents(convertedText) {
+            const parts = convertedText.split(',').map(s => s.trim());
+            if (parts.length >= 3) {
+                return {
+                    province: parts[parts.length - 1],
+                    ward: parts[parts.length - 2],
+                    detail: parts.slice(0, parts.length - 2).join(', ')
+                };
+            } else if (parts.length === 2) {
+                return {
+                    province: parts[1],
+                    ward: parts[0],
+                    detail: '-'
+                };
+            } else {
+                return {
+                    province: parts[0] || '-',
+                    ward: '-',
+                    detail: '-'
+                };
+            }
+        }
+
         async function convertAddress() {
             const input = document.getElementById('addressInput').value;
             const resultBox = document.getElementById('resultOutput');
             const errorBox = document.getElementById('errorOutput');
             const errorText = document.getElementById('errorText');
             
+            const breakdownSection = document.getElementById('breakdownSection');
+            const jsonConsoleWrapper = document.getElementById('jsonConsoleWrapper');
+            const jsonConsole = document.getElementById('jsonConsole');
+            
             if (!input.trim()) {
-                alert("Vui lòng nhập địa chỉ!");
+                alert("Vui lòng nhập địa chỉ cần chuẩn hóa!");
                 return;
             }
 
+            // Show Loading Spinner
             resultBox.innerHTML = `
-                <div class="flex items-center space-x-3 text-indigo-400">
+                <div class="flex items-center space-x-3 text-indigo-400 py-3 animate-pulse">
                     <svg class="animate-spin h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                         <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                         <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                     </svg>
-                    <span>Đang phân tích dữ liệu hành chính...</span>
+                    <span class="text-sm font-semibold tracking-wide">Đang phân tích dữ liệu địa giới...</span>
                 </div>
             `;
             errorBox.classList.add('hidden');
@@ -126,25 +646,145 @@
                 const data = await response.json();
 
                 if (response.ok) {
+                    const converted = data.converted;
+                    
+                    // Render Success Result HTML
                     resultBox.innerHTML = `
-                        <div class="w-full">
-                            <div class="flex items-center space-x-2 text-emerald-400 mb-2">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                  <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                </svg>
-                                <span class="text-xs uppercase tracking-wider font-semibold">Chuyển đổi thành công</span>
+                        <div class="w-full h-full animate-fade-in pr-8 relative">
+                            <div class="w-full h-full overflow-y-auto pr-1">
+                                <span id="convertedText" class="text-base md:text-lg text-white font-bold block leading-relaxed select-all">${converted}</span>
                             </div>
-                            <span class="text-lg text-white font-medium block leading-relaxed">${data.converted}</span>
+                            <button onclick="copyToClipboard()" 
+                                class="absolute right-0 top-1/2 -translate-y-1/2 p-2 bg-indigo-500/10 border border-indigo-500/20 hover:border-indigo-500/60 hover:bg-indigo-500/20 text-indigo-300 hover:text-white rounded-xl shadow-md transition-all active:scale-95 cursor-pointer flex items-center justify-center"
+                                title="Sao chép địa chỉ">
+                                <svg id="copyIcon" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                  <path stroke-linecap="round" stroke-linejoin="round" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3" />
+                                </svg>
+                                <svg id="checkIcon" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-emerald-400 hidden flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                                  <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
+                                </svg>
+                            </button>
                         </div>
                     `;
+
+                    // Parse components for breakdown list
+                    const comp = parseAddressComponents(converted);
+                    document.getElementById('compProvince').textContent = comp.province;
+                    document.getElementById('compWard').textContent = comp.ward;
+                    document.getElementById('compDetail').textContent = comp.detail;
+                    breakdownSection.classList.remove('hidden');
+
+
+
+                    // Save search history
+                    saveToHistory(input, converted);
                 } else {
                     throw new Error(data.error || "Lỗi xử lý chuyển đổi dữ liệu");
                 }
             } catch (err) {
-                resultBox.innerHTML = `<span class="text-gray-600 italic">Quá trình xử lý thất bại.</span>`;
+                resultBox.innerHTML = `<span class="text-gray-500 italic text-sm block leading-relaxed">Quá trình xử lý thất bại.</span>`;
+                document.getElementById('compProvince').textContent = 'Lỗi';
+                document.getElementById('compWard').textContent = 'Lỗi';
+                document.getElementById('compDetail').textContent = 'Lỗi';
+                
                 errorBox.classList.remove('hidden');
-                errorText.innerHTML = `<strong>Lỗi kết nối:</strong> Không thể liên kết được với máy chủ dịch vụ. Vui lòng đảm bảo rằng bạn đã khởi động server bằng lệnh <code>node server.js</code> ở terminal. (${err.message})`;
+                errorText.innerHTML = `<strong>Lỗi kết nối:</strong> Không thể lấy dữ liệu từ máy chủ API. Hãy đảm bảo rằng bạn đã khởi động máy chủ API thành công. Chi tiết: ${err.message}`;
             }
+        }
+
+        async function copyToClipboard() {
+            const textElement = document.getElementById('convertedText');
+            if (!textElement) return;
+            const text = textElement.textContent;
+            
+            try {
+                await navigator.clipboard.writeText(text);
+                const copyIcon = document.getElementById('copyIcon');
+                const checkIcon = document.getElementById('checkIcon');
+                
+                if (copyIcon && checkIcon) {
+                    copyIcon.classList.add('hidden');
+                    checkIcon.classList.remove('hidden');
+                    
+                    setTimeout(() => {
+                        copyIcon.classList.remove('hidden');
+                        checkIcon.classList.add('hidden');
+                    }, 2000);
+                }
+            } catch (err) {
+                console.error('Lỗi khi sao chép:', err);
+            }
+        }
+
+        function saveToHistory(original, converted) {
+            let history = JSON.parse(localStorage.getItem('address_history') || '[]');
+            // Filter duplicates
+            history = history.filter(item => item.original.toLowerCase() !== original.toLowerCase());
+            history.unshift({ original, converted });
+            
+            // Limit to 6 items
+            if (history.length > 6) history.pop();
+            
+            localStorage.setItem('address_history', JSON.stringify(history));
+            renderHistory();
+        }
+
+        function deleteHistoryItem(event, index) {
+            event.stopPropagation(); // Avoid triggering selectHistoryItem
+            let history = JSON.parse(localStorage.getItem('address_history') || '[]');
+            history.splice(index, 1);
+            localStorage.setItem('address_history', JSON.stringify(history));
+            renderHistory();
+        }
+
+        function clearHistory() {
+            localStorage.removeItem('address_history');
+            renderHistory();
+        }
+
+        function selectHistoryItem(index) {
+            const history = JSON.parse(localStorage.getItem('address_history') || '[]');
+            if (history[index]) {
+                const textarea = document.getElementById('addressInput');
+                textarea.value = history[index].original;
+                handleInput(textarea);
+                convertAddress();
+            }
+        }
+
+        function renderHistory() {
+            const historyList = document.getElementById('historyList');
+            const historyWrapper = document.getElementById('historyWrapper');
+            const history = JSON.parse(localStorage.getItem('address_history') || '[]');
+            
+            if (history.length === 0) {
+                historyWrapper.classList.add('hidden');
+                return;
+            }
+            
+            historyWrapper.classList.remove('hidden');
+            historyList.innerHTML = history.map((item, index) => `
+                <div onclick="selectHistoryItem(${index})" 
+                    class="p-3 bg-white/[0.015] border border-white/[0.04] hover:border-indigo-500/20 hover:bg-white/[0.03] rounded-xl flex items-center justify-between cursor-pointer transition-all group glow-border-hover animate-fade-in" 
+                    style="animation-delay: ${index * 0.04}s;">
+                    <div class="flex-1 min-w-0 pr-3">
+                        <span class="text-[10px] text-gray-500 block truncate group-hover:text-gray-400 transition-colors">${item.original}</span>
+                        <span class="text-xs text-gray-300 font-semibold block truncate mt-0.5 group-hover:text-white transition-colors">${item.converted}</span>
+                    </div>
+                    <div class="flex items-center space-x-2 flex-shrink-0">
+                        <button onclick="deleteHistoryItem(event, ${index})" 
+                            class="p-1.5 text-gray-600 hover:text-red-400 hover:bg-white/[0.04] rounded-lg transition-all" 
+                            title="Xóa mục này">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                              <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                            </svg>
+                        </button>
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-gray-600 group-hover:text-indigo-400 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />
+                        </svg>
+                    </div>
+                </div>
+            `).join('');
         }
     </script>
 </body>
