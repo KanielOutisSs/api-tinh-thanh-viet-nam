@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Address Converter - Trình chuyển đổi địa chỉ thông minh</title>
+    <!-- Outfit Font from Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Outfit', 'sans-serif'],
+                    },
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            font-family: 'Outfit', sans-serif;
+            background: radial-gradient(circle at 10% 20%, rgba(98, 114, 246, 0.1) 0%, rgba(204, 153, 239, 0.05) 90.1%), #0b0f19;
+            color: #f3f4f6;
+        }
+        .glass-panel {
+            background: rgba(17, 25, 40, 0.65);
+            backdrop-filter: blur(16px) saturate(180%);
+            -webkit-backdrop-filter: blur(16px) saturate(180%);
+            border: 1px solid rgba(255, 255, 255, 0.085);
+        }
+        .glow-button {
+            position: relative;
+            transition: all 0.3s ease;
+            background: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);
+        }
+        .glow-button:hover {
+            box-shadow: 0 0 25px rgba(99, 102, 241, 0.5);
+            transform: translateY(-2px);
+        }
+        .glow-button:active {
+            transform: translateY(1px);
+        }
+    </style>
+</head>
+<body class="flex flex-col items-center justify-center min-h-screen p-4 overflow-x-hidden">
+    <!-- Decorative Ambient Glows -->
+    <div class="absolute top-1/4 left-1/4 w-96 h-96 bg-indigo-600/10 rounded-full blur-3xl -z-10 animate-pulse"></div>
+    <div class="absolute bottom-1/4 right-1/4 w-96 h-96 bg-purple-600/10 rounded-full blur-3xl -z-10 animate-pulse" style="animation-delay: 2s;"></div>
+
+    <div class="w-full max-w-2xl glass-panel p-8 rounded-3xl shadow-2xl relative overflow-hidden transition-all duration-300">
+        <!-- Top border glow line -->
+        <div class="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-indigo-500 to-purple-500"></div>
+        
+        <div class="flex items-center space-x-3 mb-2">
+            <span class="p-2 bg-indigo-500/10 rounded-xl text-indigo-400 border border-indigo-500/20">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                </svg>
+            </span>
+            <h1 class="text-2xl font-bold bg-gradient-to-r from-indigo-200 via-indigo-100 to-purple-200 bg-clip-text text-transparent">
+                Address Converter
+            </h1>
+        </div>
+        <p class="text-gray-400 text-sm mb-8">Trình chuẩn hóa và đối chiếu địa chỉ CCCD thông minh theo tiêu chuẩn Bộ Công an.</p>
+        
+        <div class="mb-6 relative">
+            <label class="block text-xs font-semibold uppercase tracking-wider text-gray-400 mb-2">Nhập địa chỉ cần chuyển đổi</label>
+            <textarea id="addressInput" rows="3" 
+                class="w-full p-4 bg-gray-900/50 border border-gray-800 rounded-2xl focus:outline-none focus:border-indigo-500/50 focus:ring-1 focus:ring-indigo-500/50 text-gray-200 transition-all placeholder-gray-600 resize-none" 
+                placeholder="Ví dụ: tổ 3 khu 1 quang trung uông bí quảng ninh..."></textarea>
+        </div>
+
+        <button onclick="convertAddress()" class="w-full glow-button text-white font-semibold py-4 px-6 rounded-2xl flex items-center justify-center space-x-2">
+            <span>Chuyển Đổi Địa Chỉ</span>
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 animate-bounce-horizontal" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M13 5l7 7-7 7M5 5l7 7-7 7" />
+            </svg>
+        </button>
+
+        <div class="mt-8 transition-all duration-300">
+            <label class="block text-xs font-semibold uppercase tracking-wider text-gray-400 mb-2">Kết quả chuẩn hóa</label>
+            <div id="resultOutput" class="w-full p-5 bg-gray-950/40 border border-gray-900 rounded-2xl min-h-[80px] text-gray-200 flex items-center transition-all duration-300">
+                <span class="text-gray-600 italic">Nhập địa chỉ và click "Chuyển Đổi" để xem kết quả...</span>
+            </div>
+        </div>
+        
+        <div id="errorOutput" class="mt-4 p-4 bg-red-950/20 border border-red-500/20 rounded-2xl text-red-400 text-sm hidden flex items-start space-x-2">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 flex-shrink-0 text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+            </svg>
+            <span id="errorText"></span>
+        </div>
+    </div>
+    
+    <p class="text-xs text-gray-600 mt-6 tracking-wide">hrms-app &copy; 2026. Phát triển bởi Google DeepMind.</p>
+
+    <script>
+        async function convertAddress() {
+            const input = document.getElementById('addressInput').value;
+            const resultBox = document.getElementById('resultOutput');
+            const errorBox = document.getElementById('errorOutput');
+            const errorText = document.getElementById('errorText');
+            
+            if (!input.trim()) {
+                alert("Vui lòng nhập địa chỉ!");
+                return;
+            }
+
+            resultBox.innerHTML = `
+                <div class="flex items-center space-x-3 text-indigo-400">
+                    <svg class="animate-spin h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    <span>Đang phân tích dữ liệu hành chính...</span>
+                </div>
+            `;
+            errorBox.classList.add('hidden');
+
+            try {
+                const response = await fetch(`http://localhost:3000/convert?address=${encodeURIComponent(input)}`);
+                const data = await response.json();
+
+                if (response.ok) {
+                    resultBox.innerHTML = `
+                        <div class="w-full">
+                            <div class="flex items-center space-x-2 text-emerald-400 mb-2">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                  <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                                <span class="text-xs uppercase tracking-wider font-semibold">Chuyển đổi thành công</span>
+                            </div>
+                            <span class="text-lg text-white font-medium block leading-relaxed">${data.converted}</span>
+                        </div>
+                    `;
+                } else {
+                    throw new Error(data.error || "Lỗi xử lý chuyển đổi dữ liệu");
+                }
+            } catch (err) {
+                resultBox.innerHTML = `<span class="text-gray-600 italic">Quá trình xử lý thất bại.</span>`;
+                errorBox.classList.remove('hidden');
+                errorText.innerHTML = `<strong>Lỗi kết nối:</strong> Không thể liên kết được với máy chủ dịch vụ. Vui lòng đảm bảo rằng bạn đã khởi động server bằng lệnh <code>node server.js</code> ở terminal. (${err.message})`;
+            }
+        }
+    </script>
+</body>
+</html>

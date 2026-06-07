@@ -1,0 +1,18 @@
+{
+  "name": "vietnamese-address-converter",
+  "version": "1.0.0",
+  "description": "Chuẩn hóa và đối chiếu địa chỉ Việt Nam theo tiêu chuẩn Bộ Công an",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "test": "node test.js"
+  },
+  "keywords": [
+    "address",
+    "vietnam",
+    "converter",
+    "normalization"
+  ],
+  "author": "Google DeepMind",
+  "license": "MIT"
+}
