@@ -172,45 +172,24 @@ class AddressConverter {
                       .trim();
         };
 
-        const distFullNorm = normalizeKeepPrefix(districtObj.fullName);
         const distShortNorm = normalizeKeepPrefix(districtObj.name);
         
         const cleanPart = part.normalize('NFD');
         const cleanNorm = cleanPart.replace(/[\u0300-\u036f]/g, '').replace(/đ/g, 'd').replace(/Đ/g, 'D').toLowerCase();
         
-        let matchNorm = null;
-        let matchLen = 0;
+        const escapeRegExp = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        // Match the district name optionally preceded by any administrative prefix (mismatched or not, e.g. "xa yen son" or "huyen yen son")
+        const rx = new RegExp(`\\b(quan|huyen|thanh pho|thi xa|q|h|tp|tx|xa|phuong|tt)?\\s*${escapeRegExp(distShortNorm)}\\b`, 'i');
+        const match = cleanNorm.match(rx);
         
-        const isShortNumeric = /^\d+$/.test(distShortNorm) || distShortNorm.length <= 2;
-        
-        if (cleanNorm.includes(distFullNorm)) {
-            matchNorm = distFullNorm;
-            matchLen = distFullNorm.length;
-        } else if (!isShortNumeric && cleanNorm.includes(distShortNorm)) {
-            matchNorm = distShortNorm;
-            matchLen = distShortNorm.length;
-        } else if (isShortNumeric) {
-            const rx = new RegExp(`^\\s*(quan|q|huyen|h)?\\s*${distShortNorm}\\s*$|^\\s*(quan|q|huyen|h)\\s*${distShortNorm}\\b`, 'i');
-            const match = cleanNorm.match(rx);
-            if (match) {
-                matchNorm = match[0];
-                matchLen = match[0].length;
-                const idx = cleanNorm.indexOf(matchNorm);
-                const result = this.getNFDSubstrings(cleanPart, idx, matchLen);
-                let combined = [result.prefix, result.suffix].filter(s => s.trim()).join(' ');
-                combined = combined.replace(/^[,\-\s]+|[,\-\s]+$/g, '').trim();
-                return combined;
-            }
-            return part;
-        }
-        
-        if (matchNorm) {
-            const idx = cleanNorm.indexOf(matchNorm);
-            const result = this.getNFDSubstrings(cleanPart, idx, matchLen);
+        if (match) {
+            const idx = cleanNorm.indexOf(match[0]);
+            const result = this.getNFDSubstrings(cleanPart, idx, match[0].length);
             let combined = [result.prefix, result.suffix].filter(s => s.trim()).join(' ');
             combined = combined.replace(/^[,\-\s]+|[,\-\s]+$/g, '').trim();
             return combined;
         }
+        
         return part;
     }
 
@@ -375,6 +354,7 @@ class AddressConverter {
 
     convertAddress(rawAddress) {
         if (!this.isLoaded) throw new Error("Data not loaded");
+        const escapeRegExp = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
         let text = rawAddress;
         
@@ -476,6 +456,46 @@ class AddressConverter {
             let wasMapped = false;
             
             if (resultProvince) {
+                // If this exact ward name is also a district name in the same province,
+                // check if there is another part in the address that contains a ward name.
+                // If so, skip exact match for this part here so it can be matched as a district later.
+                let isAlsoDistrict = this.districts.some(d => d.provinceCode === resultProvince.code && d.norm === wNorm);
+                if (isAlsoDistrict) {
+                    let otherPartHasWard = false;
+                    for (let j = 0; j <= pIdx; j++) {
+                        if (j === i) continue;
+                        let otherNorm = this.normalize(parts[j]);
+                        if (!otherNorm) continue;
+                        
+                        const provinceWards = this.provinceWardsMap.get(resultProvince.code) || [];
+                        for (const w of provinceWards) {
+                            let rx = new RegExp(`\\b${escapeRegExp(w.norm)}\\b`, 'i');
+                            if (rx.test(otherNorm)) {
+                                otherPartHasWard = true;
+                                break;
+                            }
+                        }
+                        if (otherPartHasWard) break;
+                        
+                        for (const oldNorm in this.oldWardToNewWard) {
+                            let rx = new RegExp(`\\b${escapeRegExp(oldNorm)}\\b`, 'i');
+                            if (rx.test(otherNorm)) {
+                                let mappedNewNorms = this.oldWardToNewWard[oldNorm];
+                                for (const mappedNorm of mappedNewNorms) {
+                                    if (this.wardMap.has(`${resultProvince.code}_${mappedNorm}`)) {
+                                        otherPartHasWard = true;
+                                        break;
+                                    }
+                                }
+                            }
+                            if (otherPartHasWard) break;
+                        }
+                    }
+                    if (otherPartHasWard) {
+                        continue; // Skip exact match in Step 2
+                    }
+                }
+
                 // Direct match
                 let directCands = this.wardMap.get(`${resultProvince.code}_${wNorm}`);
                 if (directCands && directCands.length > 0) {
@@ -512,7 +532,6 @@ class AddressConverter {
         // Step 3: Substring Fallback for Ward if not found
         if (!foundWard && resultProvince) {
             let matches = [];
-            const escapeRegExp = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
             const wardsInProv = this.provinceWardsMap.get(resultProvince.code) || [];
             
             for (let i = 0; i <= pIdx; i++) {

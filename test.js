@@ -58,6 +58,11 @@ const tests = [
         name: 'Trường hợp sáp nhập Phường Cầu Diễn và Quận Nam Từ Liêm thành Phường Từ Liêm',
         input: 'Tổ Dân Phố Số 10 Cầu Diễn, Nam Từ Liêm, Hà Nội',
         expected: 'Tổ Dân Phố Số 10, Phường Từ Liêm, Thành phố Hà Nội'
+    },
+    {
+        name: 'Trường hợp sáp nhập Xã Trung Minh và Huyện Yên Sơn thành Xã Hùng Lợi (typo Xã Yên Sơn)',
+        input: 'Thôn Minh Lợi Trung Minh, Xã Yên Sơn, Tỉnh Tuyên Quang',
+        expected: 'Thôn Minh Lợi, Xã Hùng Lợi, Tỉnh Tuyên Quang'
     }
 ];
 
