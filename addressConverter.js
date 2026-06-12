@@ -193,7 +193,7 @@ class AddressConverter {
         return part;
     }
 
-    disambiguateWard(candidates, fullAddressNorm) {
+    disambiguateWard(candidates, fullAddressNorm, wNorm) {
         if (!candidates || candidates.length === 0) return null;
         if (candidates.length === 1) return candidates[0];
         
@@ -213,13 +213,27 @@ class AddressConverter {
                 }
             }
             
-            // Score based on whether the candidate ward name itself is in the address
+            // 1. Score based on direct ward name match
             const wardNorm = cand.norm;
             const wardFullNorm = this.normalize(cand.fullName);
             if (fullAddressNorm.includes(wardFullNorm)) {
                 score += 20;
             } else if (fullAddressNorm.includes(wardNorm)) {
                 score += 10;
+            }
+            
+            // 2. Score based on mapped old ward name match
+            if (wNorm) {
+                const mappedNewNorms = this.oldWardToNewWard[wNorm];
+                if (mappedNewNorms && mappedNewNorms.includes(cand.norm)) {
+                    if (fullAddressNorm.includes("xa " + wNorm) || 
+                        fullAddressNorm.includes("phuong " + wNorm) || 
+                        fullAddressNorm.includes("thi tran " + wNorm)) {
+                        score += 20;
+                    } else if (fullAddressNorm.includes(wNorm)) {
+                        score += 10;
+                    }
+                }
             }
             
             if (score > maxScore) {
@@ -502,28 +516,30 @@ class AddressConverter {
                     candidates.push(...directCands);
                 }
                 
-                // Mapped match
-                if (candidates.length === 0) {
-                    let mappedNewNorms = this.oldWardToNewWard[wNorm];
-                    if (mappedNewNorms && mappedNewNorms.length > 0) {
-                        for (const mappedNorm of mappedNewNorms) {
-                            let wardsInProv = this.wardMap.get(`${resultProvince.code}_${mappedNorm}`);
-                            if (wardsInProv) {
-                                candidates.push(...wardsInProv);
+                // Mapped match (always check old ward mapping too)
+                let mappedNewNorms = this.oldWardToNewWard[wNorm];
+                if (mappedNewNorms && mappedNewNorms.length > 0) {
+                    for (const mappedNorm of mappedNewNorms) {
+                        let wardsInProv = this.wardMap.get(`${resultProvince.code}_${mappedNorm}`);
+                        if (wardsInProv) {
+                            for (const w of wardsInProv) {
+                                if (!candidates.some(c => c.code === w.code)) {
+                                    candidates.push(w);
+                                }
                             }
-                        }
-                        if (candidates.length > 0) {
-                            wasMapped = true;
                         }
                     }
                 }
             }
             
             if (candidates.length > 0) {
-                foundWard = this.disambiguateWard(candidates, this.normalize(text));
+                foundWard = this.disambiguateWard(candidates, this.normalize(text), wNorm);
                 foundWardPartIdx = i;
-                if (wasMapped) {
-                    mappedFromOldWard = { originalName: parts[i], norm: wNorm };
+                if (foundWard && foundWard.norm !== wNorm) {
+                    let mappedNewNorms = this.oldWardToNewWard[wNorm];
+                    if (mappedNewNorms && mappedNewNorms.includes(foundWard.norm)) {
+                        mappedFromOldWard = { originalName: parts[i], norm: wNorm };
+                    }
                 }
                 break;
             }
@@ -634,7 +650,8 @@ class AddressConverter {
                 const bestCandidates = matches.filter(m => m.partIdx === bestMatchItem.partIdx && m.index === bestMatchItem.index && m.length === bestMatchItem.length)
                                               .map(m => m.ward);
                 
-                foundWard = this.disambiguateWard(bestCandidates, this.normalize(text));
+                let matchedWNorm = bestMatchItem.wasMapped ? bestMatchItem.originalMatched : bestMatchItem.ward.norm;
+                foundWard = this.disambiguateWard(bestCandidates, this.normalize(text), matchedWNorm);
                 foundWardPartIdx = bestMatchItem.partIdx;
                 foundWardSubstringMatch = true;
                 

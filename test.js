@@ -63,6 +63,11 @@ const tests = [
         name: 'Trường hợp sáp nhập Xã Trung Minh và Huyện Yên Sơn thành Xã Hùng Lợi (typo Xã Yên Sơn)',
         input: 'Thôn Minh Lợi Trung Minh, Xã Yên Sơn, Tỉnh Tuyên Quang',
         expected: 'Thôn Minh Lợi, Xã Hùng Lợi, Tỉnh Tuyên Quang'
+    },
+    {
+        name: 'Trường hợp sáp nhập Xã Phú Đông (huyện Ba Vì) thành Xã Cổ Đô (collision với Xã Phù Đổng quận Gia Lâm)',
+        input: 'thon thuận trại, xã phú đông, huyện ba vì, thành phố hà nội',
+        expected: 'Thon Thuận Trại, Xã Cổ Đô, Thành phố Hà Nội'
     }
 ];
 
