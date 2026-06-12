@@ -403,6 +403,22 @@ class AddressConverter {
         text = text.replace(/\bxả\b/gi, 'xã');
         text = text.replace(/\bhuyên\b/gi, 'huyện');
         
+        // Standardize common village/street-level prefix words to standard Vietnamese with diacritics
+        text = text.replace(/\bthon\b/gi, 'thôn');
+        text = text.replace(/\bxom\b/gi, 'xóm');
+        text = text.replace(/\bap\b/gi, 'ấp');
+        text = text.replace(/\bban\b/gi, 'bản');
+        text = text.replace(/\blang\b/gi, 'làng');
+        text = text.replace(/\bto\b/gi, 'tổ');
+        text = text.replace(/\bngo\b/gi, 'ngõ');
+        text = text.replace(/\bngach\b/gi, 'ngách');
+        text = text.replace(/\bhem\b/gi, 'hẻm');
+        text = text.replace(/\bduong\b/gi, 'đường');
+        text = text.replace(/\bpho\b/gi, 'phố');
+        text = text.replace(/\btap the\b/gi, 'tập thể');
+        text = text.replace(/\bkhu pho\b/gi, 'khu phố');
+        text = text.replace(/\bto dan pho\b/gi, 'tổ dân phố');
+        
         // Auto-insert commas before administrative prefixes if missing
         text = text.replace(/(?<!,\s*)\b(tỉnh|thành phố|thủ đô|huyện|quận|thị xã|phường|xã|thị trấn)\s+/gi, ', $1 ');
         

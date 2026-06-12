@@ -67,7 +67,7 @@ const tests = [
     {
         name: 'Trường hợp sáp nhập Xã Phú Đông (huyện Ba Vì) thành Xã Cổ Đô (collision với Xã Phù Đổng quận Gia Lâm)',
         input: 'thon thuận trại, xã phú đông, huyện ba vì, thành phố hà nội',
-        expected: 'Thon Thuận Trại, Xã Cổ Đô, Thành phố Hà Nội'
+        expected: 'Thôn Thuận Trại, Xã Cổ Đô, Thành phố Hà Nội'
     }
 ];
 
