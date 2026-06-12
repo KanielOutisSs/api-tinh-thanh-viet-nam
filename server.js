@@ -90,6 +90,20 @@ const server = http.createServer((req, res) => {
                 existingFeedback.push(newEntry);
                 fs.writeFileSync(feedbackFilePath, JSON.stringify(existingFeedback, null, 4), 'utf8');
                 
+                // Console warning if current conversion outputs differently from expected
+                try {
+                    const currentOutput = converter.convertAddress(feedbackData.input);
+                    if (currentOutput.toLowerCase() !== feedbackData.expected.toLowerCase()) {
+                        console.warn(`\n⚠️ [FEEDBACK WARNING] New error report submitted!`);
+                        console.warn(`Input:    "${feedbackData.input}"`);
+                        console.warn(`Current:  "${currentOutput}"`);
+                        console.warn(`Expected: "${feedbackData.expected}"`);
+                        console.warn(`Action: Open Antigravity to analyze and update the parsing rules.\n`);
+                    }
+                } catch (e) {
+                    console.warn(`\n⚠️ [FEEDBACK WARNING] Address threw error during check: "${feedbackData.input}" -> ${e.message}\n`);
+                }
+                
                 res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
                 res.end(JSON.stringify({ success: true, message: "Feedback saved successfully" }));
             } catch (err) {
