@@ -207,9 +207,9 @@ class AddressConverter {
                 const distShortNorm = this.normalize(cand.districtFullName.replace(/^(quan|huyen|thi xa|thanh pho)\s+/i, ''));
                 
                 if (fullAddressNorm.includes(distFullNorm)) {
-                    score += 10;
+                    score += 30;
                 } else if (fullAddressNorm.includes(distShortNorm)) {
-                    score += 5;
+                    score += 15;
                 }
             }
             
@@ -222,16 +222,23 @@ class AddressConverter {
                 score += 10;
             }
             
+            // Direct candidate bonus to prefer direct match over mapped match if district is equal
+            if (wNorm && cand.norm === wNorm) {
+                score += 15;
+            }
+            
             // 2. Score based on mapped old ward name match
-            if (wNorm) {
-                const mappedNewNorms = this.oldWardToNewWard[wNorm];
+            for (const oldNorm in this.oldWardToNewWard) {
+                const mappedNewNorms = this.oldWardToNewWard[oldNorm];
                 if (mappedNewNorms && mappedNewNorms.includes(cand.norm)) {
-                    if (fullAddressNorm.includes("xa " + wNorm) || 
-                        fullAddressNorm.includes("phuong " + wNorm) || 
-                        fullAddressNorm.includes("thi tran " + wNorm)) {
+                    if (fullAddressNorm.includes("xa " + oldNorm) || 
+                        fullAddressNorm.includes("phuong " + oldNorm) || 
+                        fullAddressNorm.includes("thi tran " + oldNorm)) {
                         score += 20;
-                    } else if (fullAddressNorm.includes(wNorm)) {
+                        break;
+                    } else if (fullAddressNorm.includes(oldNorm)) {
                         score += 10;
+                        break;
                     }
                 }
             }
@@ -656,22 +663,36 @@ class AddressConverter {
             }
             
             if (matches.length > 0) {
+                // Sort matches so that the longest match comes first. If lengths are equal, sort by index ascending.
                 matches.sort((a, b) => {
                     if (a.partIdx !== b.partIdx) return a.partIdx - b.partIdx;
-                    if (a.index !== b.index) return a.index - b.index;
-                    return b.length - a.length;
+                    if (b.length !== a.length) return b.length - a.length; // Longer wins
+                    return a.index - b.index; // Ascending index
                 });
                 
                 const bestMatchItem = matches[0];
-                const bestCandidates = matches.filter(m => m.partIdx === bestMatchItem.partIdx && m.index === bestMatchItem.index && m.length === bestMatchItem.length)
-                                              .map(m => m.ward);
+                
+                // Collect all unique candidate wards from the same partIdx to let disambiguateWard choose
+                const bestCandidates = [];
+                for (const m of matches) {
+                    if (m.partIdx === bestMatchItem.partIdx) {
+                        if (!bestCandidates.some(w => w.code === m.ward.code)) {
+                            bestCandidates.push(m.ward);
+                        }
+                    }
+                }
                 
                 let matchedWNorm = bestMatchItem.wasMapped ? bestMatchItem.originalMatched : bestMatchItem.ward.norm;
                 foundWard = this.disambiguateWard(bestCandidates, this.normalize(text), matchedWNorm);
                 foundWardPartIdx = bestMatchItem.partIdx;
                 foundWardSubstringMatch = true;
                 
-                let matchedStr = bestMatchItem.wasMapped ? bestMatchItem.originalMatched : foundWard.norm;
+                let matchedStr = foundWard ? foundWard.norm : matchedWNorm;
+                const winningMatch = matches.find(m => m.ward.code === foundWard.code && m.partIdx === foundWardPartIdx);
+                if (winningMatch) {
+                    matchedStr = winningMatch.wasMapped ? winningMatch.originalMatched : winningMatch.ward.norm;
+                }
+                
                 const originalPart = parts[foundWardPartIdx];
                 const splitResult = this.splitWardFromPart(originalPart, matchedStr);
                 
@@ -682,7 +703,7 @@ class AddressConverter {
                 parts.splice(foundWardPartIdx, 1, ...newParts);
                 pIdx = pIdx - 1 + newParts.length;
                 
-                if (bestMatchItem.wasMapped) {
+                if (winningMatch && winningMatch.wasMapped) {
                     const cleanPart = originalPart.normalize('NFD');
                     const cleanNorm = cleanPart.replace(/[\u0300-\u036f]/g, '').replace(/đ/g, 'd').replace(/Đ/g, 'D').toLowerCase();
                     const idx = cleanNorm.indexOf(matchedStr);
