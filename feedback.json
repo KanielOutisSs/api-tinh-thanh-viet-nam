@@ -26,5 +26,12 @@
         "input": "Đội 7, Vĩnh Phúc, Liệp Tuyết, Quốc Oai, Hà Nội",
         "output": "Đội 7, Liệp Tuyết, Quốc Oai, Phường Ngọc Hà, Thành phố Hà Nội",
         "expected": ""
+    },
+    {
+        "id": "1781372766275",
+        "timestamp": "2026-06-13T17:46:06.275Z",
+        "input": "Cốc Lùng, Đồng Thắng, Chợ Đồn, Bắc Kạn",
+        "output": "Cốc Lùng, Chợ Đồn, Xã Bạch Thông, Tỉnh Thái Nguyên",
+        "expected": ""
     }
 ]
