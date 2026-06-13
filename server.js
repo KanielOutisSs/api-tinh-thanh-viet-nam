@@ -206,6 +206,10 @@ const server = http.createServer((req, res) => {
                     res.writeHead(500, { 'Content-Type': 'application/json; charset=utf-8' });
                     res.end(JSON.stringify({ error: "Failed to save feedback: " + err.message }));
                 });
+            } catch (err) {
+                res.writeHead(500, { 'Content-Type': 'application/json; charset=utf-8' });
+                res.end(JSON.stringify({ error: "Failed to save feedback: " + err.message }));
+            }
         });
     } else {
         res.writeHead(404, { 'Content-Type': 'text/plain; charset=utf-8' });
