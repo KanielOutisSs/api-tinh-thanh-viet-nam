@@ -3,99 +3,120 @@ const path = require('path');
 const AddressConverter = require('./addressConverter');
 
 const feedbackFilePath = path.join(__dirname, 'feedback.json');
+const useRemote = process.argv.includes('--remote');
+const remoteUrl = "https://api-tinh-thanh-viet-nam.onrender.com/feedback";
 
-if (!fs.existsSync(feedbackFilePath)) {
-    console.log("\n✅ No feedback.json file found. There are no reported errors to check!");
-    process.exit(0);
-}
-
-let feedbacks = [];
-try {
-    feedbacks = JSON.parse(fs.readFileSync(feedbackFilePath, 'utf8'));
-} catch (e) {
-    console.error("❌ Error reading or parsing feedback.json:", e.message);
-    process.exit(1);
-}
-
-if (!Array.isArray(feedbacks) || feedbacks.length === 0) {
-    console.log("\n✅ The feedback.json file is empty. No reported errors to check!");
-    process.exit(0);
-}
-
-console.log("Loading dataset...");
-const converter = new AddressConverter();
-converter.loadData(
-    path.join(__dirname, 'data/donvi_tinhthanh.json'),
-    path.join(__dirname, 'data/simplified_json_generated_data_vn_units.json')
-);
-console.log("Dataset loaded successfully!\n");
-
-console.log(`Checking ${feedbacks.length} reported address feedback(s)...`);
-console.log("==================================================");
-
-let failedCount = 0;
-let passedCount = 0;
-let reviewCount = 0;
-
-feedbacks.forEach((entry, index) => {
-    try {
-        const actual = converter.convertAddress(entry.input);
-        
-        console.log(`\n[#${index + 1}] Feedback ID: ${entry.id}`);
-        console.log(`Input:    "${entry.input}"`);
-        
-        if (entry.expected) {
-            console.log(`Expected: "${entry.expected}"`);
-            console.log(`Actual:   "${actual}"`);
-            const isCorrect = actual.toLowerCase() === entry.expected.toLowerCase();
-            if (isCorrect) {
-                console.log("Status:   ✅ PASSED (Code parses it correctly now)");
-                passedCount++;
-            } else {
-                console.log("Status:   ❌ FAILED (Algorithm needs update)");
-                failedCount++;
+async function main() {
+    let feedbacks = [];
+    
+    if (useRemote) {
+        console.log(`Fetching feedback from remote server: ${remoteUrl} ...`);
+        try {
+            const res = await fetch(remoteUrl);
+            if (!res.ok) {
+                throw new Error(`HTTP error! status: ${res.status}`);
             }
-        } else {
-            console.log(`Reported: "${entry.output}"`);
-            console.log(`Actual:   "${actual}"`);
-            
-            const isStillWrong = actual.toLowerCase() === entry.output.toLowerCase();
-            if (isStillWrong) {
-                console.log("Status:   ❌ FAILED (Still producing the reported wrong output)");
-                failedCount++;
-            } else {
-                console.log("Status:   ❓ REVIEW REQUIRED (Output changed, please verify if correct)");
-                reviewCount++;
-            }
+            feedbacks = await res.json();
+        } catch (e) {
+            console.error("❌ Failed to fetch remote feedbacks:", e.message);
+            process.exit(1);
         }
-    } catch (err) {
-        console.log(`\n[#${index + 1}] Feedback ID: ${entry.id}`);
-        console.log(`Input:    "${entry.input}"`);
-        if (entry.expected) {
-            console.log(`Expected: "${entry.expected}"`);
-        } else {
-            console.log(`Reported: "${entry.output}"`);
+    } else {
+        if (!fs.existsSync(feedbackFilePath)) {
+            console.log("\n✅ No local feedback.json file found. (To check remote deploy, run: npm run check-feedback -- --remote)");
+            process.exit(0);
         }
-        console.log(`Error:    💥 ${err.message}`);
-        console.log("Status:   ❌ FAILED (Algorithm threw error)");
-        failedCount++;
+
+        try {
+            feedbacks = JSON.parse(fs.readFileSync(feedbackFilePath, 'utf8'));
+        } catch (e) {
+            console.error("❌ Error reading or parsing local feedback.json:", e.message);
+            process.exit(1);
+        }
     }
-});
 
-console.log("\n==================================================");
-console.log("SUMMARY:");
-console.log(`Total Feedbacks: ${feedbacks.length}`);
-console.log(`✅ Passed:        ${passedCount}`);
-console.log(`❓ Needs Review:  ${reviewCount}`);
-console.log(`❌ Failed:        ${failedCount}`);
+    if (!Array.isArray(feedbacks) || feedbacks.length === 0) {
+        console.log("\n✅ No reported errors to check!");
+        process.exit(0);
+    }
 
-if (failedCount > 0) {
-    console.log("\n❌ Action required: Please review and fix the failing addresses in the code!");
-    process.exit(1);
-} else if (reviewCount > 0) {
-    console.log("\n❓ Action required: Please review the changed output addresses to verify correctness!");
-    process.exit(0);
-} else {
-    console.log("\n✅ All reported feedbacks are passing! The code is fully aligned.");
-    process.exit(0);
+    console.log("Loading dataset...");
+    const converter = new AddressConverter();
+    converter.loadData(
+        path.join(__dirname, 'data/donvi_tinhthanh.json'),
+        path.join(__dirname, 'data/simplified_json_generated_data_vn_units.json')
+    );
+    console.log("Dataset loaded successfully!\n");
+
+    console.log(`Checking ${feedbacks.length} reported address feedback(s)...`);
+    console.log("==================================================");
+
+    let failedCount = 0;
+    let passedCount = 0;
+    let reviewCount = 0;
+
+    feedbacks.forEach((entry, index) => {
+        try {
+            const actual = converter.convertAddress(entry.input);
+            
+            console.log(`\n[#${index + 1}] Feedback ID: ${entry.id}`);
+            console.log(`Input:    "${entry.input}"`);
+            
+            if (entry.expected) {
+                console.log(`Expected: "${entry.expected}"`);
+                console.log(`Actual:   "${actual}"`);
+                const isCorrect = actual.toLowerCase() === entry.expected.toLowerCase();
+                if (isCorrect) {
+                    console.log("Status:   ✅ PASSED (Code parses it correctly now)");
+                    passedCount++;
+                } else {
+                    console.log("Status:   ❌ FAILED (Algorithm needs update)");
+                    failedCount++;
+                }
+            } else {
+                console.log(`Reported: "${entry.output}"`);
+                console.log(`Actual:   "${actual}"`);
+                
+                const isStillWrong = actual.toLowerCase() === entry.output.toLowerCase();
+                if (isStillWrong) {
+                    console.log("Status:   ❌ FAILED (Still producing the reported wrong output)");
+                    failedCount++;
+                } else {
+                    console.log("Status:   ❓ REVIEW REQUIRED (Output changed, please verify if correct)");
+                    reviewCount++;
+                }
+            }
+        } catch (err) {
+            console.log(`\n[#${index + 1}] Feedback ID: ${entry.id}`);
+            console.log(`Input:    "${entry.input}"`);
+            if (entry.expected) {
+                console.log(`Expected: "${entry.expected}"`);
+            } else {
+                console.log(`Reported: "${entry.output}"`);
+            }
+            console.log(`Error:    💥 ${err.message}`);
+            console.log("Status:   ❌ FAILED (Algorithm threw error)");
+            failedCount++;
+        }
+    });
+
+    console.log("\n==================================================");
+    console.log("SUMMARY:");
+    console.log(`Total Feedbacks: ${feedbacks.length}`);
+    console.log(`✅ Passed:        ${passedCount}`);
+    console.log(`❓ Needs Review:  ${reviewCount}`);
+    console.log(`❌ Failed:        ${failedCount}`);
+
+    if (failedCount > 0) {
+        console.log("\n❌ Action required: Please review and fix the failing addresses in the code!");
+        process.exit(1);
+    } else if (reviewCount > 0) {
+        console.log("\n❓ Action required: Please review the changed output addresses to verify correctness!");
+        process.exit(0);
+    } else {
+        console.log("\n✅ All reported feedbacks are passing! The code is fully aligned.");
+        process.exit(0);
+    }
 }
+
+main();

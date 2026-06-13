@@ -55,6 +55,22 @@ const server = http.createServer((req, res) => {
             res.writeHead(500, { 'Content-Type': 'application/json; charset=utf-8' });
             res.end(JSON.stringify({ error: error.message }));
         }
+    } else if (parsedUrl.pathname === '/feedback' && req.method === 'GET') {
+        const feedbackFilePath = path.join(__dirname, 'feedback.json');
+        if (!fs.existsSync(feedbackFilePath)) {
+            res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
+            res.end(JSON.stringify([]));
+            return;
+        }
+        fs.readFile(feedbackFilePath, 'utf8', (err, data) => {
+            if (err) {
+                res.writeHead(500, { 'Content-Type': 'application/json; charset=utf-8' });
+                res.end(JSON.stringify({ error: "Failed to read feedback: " + err.message }));
+                return;
+            }
+            res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
+            res.end(data);
+        });
     } else if (parsedUrl.pathname === '/feedback' && req.method === 'POST') {
         let body = '';
         req.on('data', chunk => {
