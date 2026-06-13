@@ -19,25 +19,27 @@ async function main() {
             feedbacks = await res.json();
         } catch (e) {
             console.error("❌ Failed to fetch remote feedbacks:", e.message);
-            process.exit(1);
+            process.exitCode = 1;
+            return;
         }
     } else {
         if (!fs.existsSync(feedbackFilePath)) {
             console.log("\n✅ No local feedback.json file found. (To check remote deploy, run: npm run check-feedback -- --remote)");
-            process.exit(0);
+            return;
         }
 
         try {
             feedbacks = JSON.parse(fs.readFileSync(feedbackFilePath, 'utf8'));
         } catch (e) {
             console.error("❌ Error reading or parsing local feedback.json:", e.message);
-            process.exit(1);
+            process.exitCode = 1;
+            return;
         }
     }
 
     if (!Array.isArray(feedbacks) || feedbacks.length === 0) {
         console.log("\n✅ No reported errors to check!");
-        process.exit(0);
+        return;
     }
 
     console.log("Loading dataset...");
@@ -109,13 +111,13 @@ async function main() {
 
     if (failedCount > 0) {
         console.log("\n❌ Action required: Please review and fix the failing addresses in the code!");
-        process.exit(1);
+        process.exitCode = 1;
     } else if (reviewCount > 0) {
         console.log("\n❓ Action required: Please review the changed output addresses to verify correctness!");
-        process.exit(0);
+        process.exitCode = 0;
     } else {
         console.log("\n✅ All reported feedbacks are passing! The code is fully aligned.");
-        process.exit(0);
+        process.exitCode = 0;
     }
 }
 

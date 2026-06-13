@@ -12,6 +12,63 @@ converter.loadData(
 );
 console.log("Dataset loaded successfully!");
 
+async function saveFeedbackToGithub(newEntry) {
+    const token = process.env.GITHUB_TOKEN;
+    const repo = process.env.GITHUB_REPO || 'KanielOutisSs/api-tinh-thanh-viet-nam';
+    const filePath = 'feedback.json';
+    const url = `https://api.github.com/repos/${repo}/contents/${filePath}`;
+
+    const headers = {
+        'Authorization': `Bearer ${token}`,
+        'User-Agent': 'address-converter-api',
+        'Accept': 'application/vnd.github.v3+json'
+    };
+
+    let existingFeedback = [];
+    let sha = null;
+
+    try {
+        const getRes = await fetch(url, { headers });
+        if (getRes.ok) {
+            const data = await getRes.json();
+            sha = data.sha;
+            const content = Buffer.from(data.content, 'base64').toString('utf8');
+            existingFeedback = JSON.parse(content);
+        } else if (getRes.status !== 404) {
+            throw new Error(`Failed to fetch current feedback.json from GitHub: status ${getRes.status}`);
+        }
+    } catch (e) {
+        console.error("Error fetching feedback.json from GitHub:", e.message);
+        throw e;
+    }
+
+    existingFeedback.push(newEntry);
+    const newContent = JSON.stringify(existingFeedback, null, 4);
+    const base64Content = Buffer.from(newContent, 'utf8').toString('base64');
+
+    const body = {
+        message: `feedback: add error report ${newEntry.id}`,
+        content: base64Content
+    };
+    if (sha) {
+        body.sha = sha;
+    }
+
+    const putRes = await fetch(url, {
+        method: 'PUT',
+        headers: {
+            ...headers,
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(body)
+    });
+
+    if (!putRes.ok) {
+        const errText = await putRes.text();
+        throw new Error(`Failed to update feedback.json on GitHub: ${putRes.status} ${errText}`);
+    }
+}
+
 const server = http.createServer((req, res) => {
     // Set CORS headers
     res.setHeader('Access-Control-Allow-Origin', '*');
@@ -85,16 +142,6 @@ const server = http.createServer((req, res) => {
                     return;
                 }
                 
-                const feedbackFilePath = path.join(__dirname, 'feedback.json');
-                let existingFeedback = [];
-                if (fs.existsSync(feedbackFilePath)) {
-                    try {
-                        existingFeedback = JSON.parse(fs.readFileSync(feedbackFilePath, 'utf8'));
-                    } catch (e) {
-                        existingFeedback = [];
-                    }
-                }
-                
                 const expectedValue = feedbackData.expected ? feedbackData.expected.trim() : "";
                 
                 const newEntry = {
@@ -105,36 +152,60 @@ const server = http.createServer((req, res) => {
                     expected: expectedValue
                 };
                 
-                existingFeedback.push(newEntry);
-                fs.writeFileSync(feedbackFilePath, JSON.stringify(existingFeedback, null, 4), 'utf8');
+                const token = process.env.GITHUB_TOKEN;
+                let savePromise;
                 
-                // Console warning if current conversion outputs differently from expected
-                try {
-                    const currentOutput = converter.convertAddress(feedbackData.input);
-                    if (expectedValue) {
-                        if (currentOutput.toLowerCase() !== expectedValue.toLowerCase()) {
-                            console.warn(`\n⚠️ [FEEDBACK WARNING] New error report submitted!`);
-                            console.warn(`Input:    "${feedbackData.input}"`);
-                            console.warn(`Current:  "${currentOutput}"`);
-                            console.warn(`Expected: "${expectedValue}"`);
-                            console.warn(`Action: Open Antigravity to analyze and update the parsing rules.\n`);
+                if (token) {
+                    savePromise = saveFeedbackToGithub(newEntry);
+                } else {
+                    savePromise = new Promise((resolve, reject) => {
+                        try {
+                            const feedbackFilePath = path.join(__dirname, 'feedback.json');
+                            let existingFeedback = [];
+                            if (fs.existsSync(feedbackFilePath)) {
+                                try {
+                                    existingFeedback = JSON.parse(fs.readFileSync(feedbackFilePath, 'utf8'));
+                                } catch (e) {
+                                    existingFeedback = [];
+                                }
+                            }
+                            existingFeedback.push(newEntry);
+                            fs.writeFileSync(feedbackFilePath, JSON.stringify(existingFeedback, null, 4), 'utf8');
+                            resolve();
+                        } catch (e) {
+                            reject(e);
                         }
-                    } else {
-                        console.warn(`\n⚠️ [FEEDBACK WARNING] New error report submitted (No expected output specified)!`);
-                        console.warn(`Input:    "${feedbackData.input}"`);
-                        console.warn(`Current:  "${currentOutput}"`);
-                        console.warn(`Action: Open Antigravity to check this address.\n`);
-                    }
-                } catch (e) {
-                    console.warn(`\n⚠️ [FEEDBACK WARNING] Address threw error during check: "${feedbackData.input}" -> ${e.message}\n`);
+                    });
                 }
                 
-                res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
-                res.end(JSON.stringify({ success: true, message: "Feedback saved successfully" }));
-            } catch (err) {
-                res.writeHead(500, { 'Content-Type': 'application/json; charset=utf-8' });
-                res.end(JSON.stringify({ error: "Failed to save feedback: " + err.message }));
-            }
+                savePromise.then(() => {
+                    // Console warning if current conversion outputs differently from expected
+                    try {
+                        const currentOutput = converter.convertAddress(feedbackData.input);
+                        if (expectedValue) {
+                            if (currentOutput.toLowerCase() !== expectedValue.toLowerCase()) {
+                                console.warn(`\n⚠️ [FEEDBACK WARNING] New error report submitted!`);
+                                console.warn(`Input:    "${feedbackData.input}"`);
+                                console.warn(`Current:  "${currentOutput}"`);
+                                console.warn(`Expected: "${expectedValue}"`);
+                                console.warn(`Action: Open Antigravity to analyze and update the parsing rules.\n`);
+                            }
+                        } else {
+                            console.warn(`\n⚠️ [FEEDBACK WARNING] New error report submitted (No expected output specified)!`);
+                            console.warn(`Input:    "${feedbackData.input}"`);
+                            console.warn(`Current:  "${currentOutput}"`);
+                            console.warn(`Action: Open Antigravity to check this address.\n`);
+                        }
+                    } catch (e) {
+                        console.warn(`\n⚠️ [FEEDBACK WARNING] Address threw error during check: "${feedbackData.input}" -> ${e.message}\n`);
+                    }
+                    
+                    res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
+                    res.end(JSON.stringify({ success: true, message: "Feedback saved successfully" }));
+                }).catch(err => {
+                    res.writeHead(500, { 'Content-Type': 'application/json; charset=utf-8' });
+                    res.end(JSON.stringify({ error: "Failed to save feedback: " + err.message }));
+                });
         });
     } else {
         res.writeHead(404, { 'Content-Type': 'text/plain; charset=utf-8' });
