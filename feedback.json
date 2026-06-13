@@ -12,5 +12,12 @@
         "input": "Thôn Cà Lồ Xuân Lai, Yên Bình, Yên Bái",
         "output": "Thôn Cà Lo, Xã Yên Thành, Tỉnh Lào Cai",
         "expected": "Cà Lồ"
+    },
+    {
+        "id": "1781372731546",
+        "timestamp": "2026-06-13T17:45:31.546Z",
+        "input": "Thôn Nà Mộ Hùng Lợi, Yên Sơn, Tuyên Quang",
+        "output": "Thôn Nà Mo, Xã Hùng Lợi, Tỉnh Tuyên Quang",
+        "expected": "Nà Mộ"
     }
 ]
