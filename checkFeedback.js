@@ -35,28 +35,47 @@ console.log("==================================================");
 
 let failedCount = 0;
 let passedCount = 0;
+let reviewCount = 0;
 
 feedbacks.forEach((entry, index) => {
     try {
         const actual = converter.convertAddress(entry.input);
-        const isCorrect = actual.toLowerCase() === entry.expected.toLowerCase();
         
         console.log(`\n[#${index + 1}] Feedback ID: ${entry.id}`);
         console.log(`Input:    "${entry.input}"`);
-        console.log(`Expected: "${entry.expected}"`);
-        console.log(`Actual:   "${actual}"`);
         
-        if (isCorrect) {
-            console.log("Status:   ✅ PASSED (Code parses it correctly now)");
-            passedCount++;
+        if (entry.expected) {
+            console.log(`Expected: "${entry.expected}"`);
+            console.log(`Actual:   "${actual}"`);
+            const isCorrect = actual.toLowerCase() === entry.expected.toLowerCase();
+            if (isCorrect) {
+                console.log("Status:   ✅ PASSED (Code parses it correctly now)");
+                passedCount++;
+            } else {
+                console.log("Status:   ❌ FAILED (Algorithm needs update)");
+                failedCount++;
+            }
         } else {
-            console.log("Status:   ❌ FAILED (Algorithm needs update)");
-            failedCount++;
+            console.log(`Reported: "${entry.output}"`);
+            console.log(`Actual:   "${actual}"`);
+            
+            const isStillWrong = actual.toLowerCase() === entry.output.toLowerCase();
+            if (isStillWrong) {
+                console.log("Status:   ❌ FAILED (Still producing the reported wrong output)");
+                failedCount++;
+            } else {
+                console.log("Status:   ❓ REVIEW REQUIRED (Output changed, please verify if correct)");
+                reviewCount++;
+            }
         }
     } catch (err) {
         console.log(`\n[#${index + 1}] Feedback ID: ${entry.id}`);
         console.log(`Input:    "${entry.input}"`);
-        console.log(`Expected: "${entry.expected}"`);
+        if (entry.expected) {
+            console.log(`Expected: "${entry.expected}"`);
+        } else {
+            console.log(`Reported: "${entry.output}"`);
+        }
         console.log(`Error:    💥 ${err.message}`);
         console.log("Status:   ❌ FAILED (Algorithm threw error)");
         failedCount++;
@@ -67,11 +86,15 @@ console.log("\n==================================================");
 console.log("SUMMARY:");
 console.log(`Total Feedbacks: ${feedbacks.length}`);
 console.log(`✅ Passed:        ${passedCount}`);
+console.log(`❓ Needs Review:  ${reviewCount}`);
 console.log(`❌ Failed:        ${failedCount}`);
 
 if (failedCount > 0) {
     console.log("\n❌ Action required: Please review and fix the failing addresses in the code!");
     process.exit(1);
+} else if (reviewCount > 0) {
+    console.log("\n❓ Action required: Please review the changed output addresses to verify correctness!");
+    process.exit(0);
 } else {
     console.log("\n✅ All reported feedbacks are passing! The code is fully aligned.");
     process.exit(0);

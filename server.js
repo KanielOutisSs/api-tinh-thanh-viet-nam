@@ -62,10 +62,10 @@ const server = http.createServer((req, res) => {
         });
         req.on('end', () => {
             try {
-                const feedbackData = JSON.parse(body);
-                if (!feedbackData.input || !feedbackData.output || !feedbackData.expected) {
+                 const feedbackData = JSON.parse(body);
+                if (!feedbackData.input || !feedbackData.output) {
                     res.writeHead(400, { 'Content-Type': 'application/json; charset=utf-8' });
-                    res.end(JSON.stringify({ error: "Missing required fields: input, output, expected" }));
+                    res.end(JSON.stringify({ error: "Missing required fields: input, output" }));
                     return;
                 }
                 
@@ -79,12 +79,14 @@ const server = http.createServer((req, res) => {
                     }
                 }
                 
+                const expectedValue = feedbackData.expected ? feedbackData.expected.trim() : "";
+                
                 const newEntry = {
                     id: Date.now().toString(),
                     timestamp: new Date().toISOString(),
                     input: feedbackData.input,
                     output: feedbackData.output,
-                    expected: feedbackData.expected
+                    expected: expectedValue
                 };
                 
                 existingFeedback.push(newEntry);
@@ -93,12 +95,19 @@ const server = http.createServer((req, res) => {
                 // Console warning if current conversion outputs differently from expected
                 try {
                     const currentOutput = converter.convertAddress(feedbackData.input);
-                    if (currentOutput.toLowerCase() !== feedbackData.expected.toLowerCase()) {
-                        console.warn(`\n⚠️ [FEEDBACK WARNING] New error report submitted!`);
+                    if (expectedValue) {
+                        if (currentOutput.toLowerCase() !== expectedValue.toLowerCase()) {
+                            console.warn(`\n⚠️ [FEEDBACK WARNING] New error report submitted!`);
+                            console.warn(`Input:    "${feedbackData.input}"`);
+                            console.warn(`Current:  "${currentOutput}"`);
+                            console.warn(`Expected: "${expectedValue}"`);
+                            console.warn(`Action: Open Antigravity to analyze and update the parsing rules.\n`);
+                        }
+                    } else {
+                        console.warn(`\n⚠️ [FEEDBACK WARNING] New error report submitted (No expected output specified)!`);
                         console.warn(`Input:    "${feedbackData.input}"`);
                         console.warn(`Current:  "${currentOutput}"`);
-                        console.warn(`Expected: "${feedbackData.expected}"`);
-                        console.warn(`Action: Open Antigravity to analyze and update the parsing rules.\n`);
+                        console.warn(`Action: Open Antigravity to check this address.\n`);
                     }
                 } catch (e) {
                     console.warn(`\n⚠️ [FEEDBACK WARNING] Address threw error during check: "${feedbackData.input}" -> ${e.message}\n`);
