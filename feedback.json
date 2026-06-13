@@ -5,5 +5,12 @@
         "input": "Tổ 20 Lĩnh Nam, Hoàng Mai, Hà Nội",
         "output": "Tổ 20 Lĩnh Nam, Phường Hoàng Mai, Thành phố Hà Nội",
         "expected": "Tổ 20, Phường Lĩnh Nam, Thành phố Hà Nội"
+    },
+    {
+        "id": "1781372716933",
+        "timestamp": "2026-06-13T17:45:16.933Z",
+        "input": "Thôn Cà Lồ Xuân Lai, Yên Bình, Yên Bái",
+        "output": "Thôn Cà Lo, Xã Yên Thành, Tỉnh Lào Cai",
+        "expected": "Cà Lồ"
     }
 ]
