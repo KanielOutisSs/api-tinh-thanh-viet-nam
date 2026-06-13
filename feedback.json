@@ -19,5 +19,12 @@
         "input": "Thôn Nà Mộ Hùng Lợi, Yên Sơn, Tuyên Quang",
         "output": "Thôn Nà Mo, Xã Hùng Lợi, Tỉnh Tuyên Quang",
         "expected": "Nà Mộ"
+    },
+    {
+        "id": "1781372750787",
+        "timestamp": "2026-06-13T17:45:50.787Z",
+        "input": "Đội 7, Vĩnh Phúc, Liệp Tuyết, Quốc Oai, Hà Nội",
+        "output": "Đội 7, Liệp Tuyết, Quốc Oai, Phường Ngọc Hà, Thành phố Hà Nội",
+        "expected": ""
     }
 ]
