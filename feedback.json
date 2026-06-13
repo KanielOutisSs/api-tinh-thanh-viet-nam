@@ -33,5 +33,12 @@
         "input": "Cốc Lùng, Đồng Thắng, Chợ Đồn, Bắc Kạn",
         "output": "Cốc Lùng, Chợ Đồn, Xã Bạch Thông, Tỉnh Thái Nguyên",
         "expected": ""
+    },
+    {
+        "id": "1781372833844",
+        "timestamp": "2026-06-13T17:47:13.844Z",
+        "input": "Địa chỉ test lỗi để kiểm tra",
+        "output": "Địa chỉ sai tự sinh",
+        "expected": "Địa chỉ đúng tự sinh"
     }
 ]
